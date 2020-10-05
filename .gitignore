@@ -1,0 +1,6 @@
+*ma.py
+*pipfile
+*pipfile.lock
+*site
+*.vscode
+*__pycache__
