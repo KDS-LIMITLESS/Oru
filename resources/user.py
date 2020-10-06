@@ -1,3 +1,4 @@
+import traceback
 from flask_jwt_extended import (
     create_access_token, 
     create_refresh_token,
@@ -9,6 +10,7 @@ from flask_jwt_extended import (
     verify_fresh_jwt_in_request, 
     verify_jwt_refresh_token_in_request
 )
+from flask import make_response, render_template
 from flask_restful import Resource, request
 from marshmallow import ValidationError
 from werkzeug.security import safe_str_cmp
@@ -26,11 +28,11 @@ class User(Resource):
     @classmethod
     @jwt_refresh_token_required
     def get(cls, name):
-        get_user = UserModel.find_user_by_name(name) # Model object holding a specific name
+        get_user = UserModel.find_user_by_name(name) 
         if not get_user:
             return {'Message': "User Not Found"}, 404
         print(user_schema.dump(get_user))
-        return user_schema.dump(get_user), 200 #converts the model object[get_user] to json.. Then returns the json
+        return user_schema.dump(get_user), 200 
         
     @classmethod
     @fresh_jwt_required
@@ -61,13 +63,20 @@ class UserRegister(Resource):
     @classmethod
     def post(cls):
         new_user = request.get_json()
+
         if UserModel.find_user_by_email(new_user['email']):
             return {"message": "A User already exists with that email"}, 404
         password = psw.generate_password_hash(new_user['password'])
         user = UserModel(new_user['username'], password ,new_user['email'])
-        print(password)
-        user.save_to_db()
-        return {"Message": f"User {new_user['username']} Created Sucessfully"}, 201
+
+        try:
+            user.save_to_db()
+            user.send_email(new_user['email'])
+            return {"Message": f"User {new_user['username']} Created Sucessfully. Check your email for your confirmation token"}, 201
+        except:
+            traceback.print_exc()
+            return {"message": "Internal Server Error"}, 500
+        
 
 
 class UserLogin(Resource):
@@ -75,16 +84,21 @@ class UserLogin(Resource):
     def post(cls):
         get_user_details = request.get_json()
         get_user_from_db = UserModel.find_user_by_email(get_user_details['email'])
+
         if not get_user_from_db:
             return {"message": f"Invalid Email Address. A user with {get_user_details['email']} does not exist in the database"}, 404
-        check_password = psw.check_password_hash(get_user_from_db.password, get_user_details['password'])
-        if check_password:
-            access_token = create_access_token(identity=get_user_from_db.email,fresh=True)
-            refresh_token = create_refresh_token(get_user_from_db.email)
-            return {
-                "Access_Token": access_token,
-                "Refresh_Token": refresh_token
-            }, 200
+        
+        if psw.check_password_hash(get_user_from_db.password, get_user_details['password']):
+            if get_user_from_db.is_activated:
+                access_token = create_access_token(identity=get_user_from_db.email,fresh=True)
+                refresh_token = create_refresh_token(get_user_from_db.email)
+
+                return {
+                    "Access_Token": access_token,
+                    "Refresh_Token": refresh_token
+                }, 200
+
+            return {"message": "Your account has not been activated "}, 400
         return {"message": "Incorrect Password"}, 401
 
 
@@ -109,5 +123,18 @@ class TokenRefresh(Resource):
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}, 200
 
+class UserConfirmation(Resource):
+    @classmethod
+    def get(cls, user_id=UserModel.id):
+        find_user = UserModel.find_user_by_id(user_id)
 
-    
+        if not find_user:
+            return {"message": "User not found"}, 404
+        
+        find_user.is_activated = True
+        find_user.save_to_db()
+        # return redirect("http://localhost:3000/", code=302)  # redirect to separate web app
+        headers = {"Content-Type": "text/html"}
+        return make_response(
+            render_template("confirmation_page.html", email=find_user.email), 200, headers
+        )

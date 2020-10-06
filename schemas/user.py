@@ -14,7 +14,7 @@ from marshmallow_sqlalchemy import SQLAlchemySchema,SQLAlchemyAutoSchema,auto_fi
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = UserModel
-        load_only = ("password",)
+        load_only = ("password","is_activated","id",)
     id = fields.Integer()
     username = fields.String(required=True,)
     password = fields.String(required=True)

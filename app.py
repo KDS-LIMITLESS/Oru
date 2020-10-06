@@ -4,7 +4,7 @@ from flask_restful import Api
 from db import db
 from password import psw
 from flask_jwt_extended import JWTManager
-from resources.user import User, UserRegister, UserLogin, UserLogout,TokenRefresh
+from resources.user import User, UserRegister, UserLogin, UserLogout,TokenRefresh, UserConfirmation
 from flask_sqlalchemy import SQLAlchemy
 from os import environ
 from models.user import TokenBlacklist,UserModel
@@ -41,6 +41,8 @@ api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(UserLogout, "/logout/access")
 api.add_resource(TokenRefresh, "/refresh/access")
+api.add_resource(UserConfirmation, "/userconfirm")
+
 
 
 

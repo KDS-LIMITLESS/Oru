@@ -1,6 +1,6 @@
 *ma.py
-*pipfile
-*pipfile.lock
+*Pipfile
 *site
 *.vscode
 *__pycache__
+*Pipfile.lock
