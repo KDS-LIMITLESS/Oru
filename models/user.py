@@ -23,8 +23,8 @@ class UserModel(db.Model):
 
     
     @classmethod
-    def find_user_by_id(cls, id):
-        return cls.query.filter_by(id=id).first()
+    def find_user_by_id(cls, id) -> "UserModel":
+        return cls.query.filter(cls.id == id).first()
 
 
     @classmethod
@@ -47,12 +47,12 @@ class UserModel(db.Model):
         db.session.add(self)
         db.session.commit()
     
-    def send_email(self, email):
+    def send_email(self):
         subject = "Registration Confirmation"
-        link = request.url_root[:-1] + url_for("userconfirmation", user_id=self.id)
+        link = request.url_root[:-1] + url_for("userconfirmation") + "/" + str(self.id)
         text = f"Please click the link to confirm your registration: {link}"
         html = f"<html>Please click the link to confirm your registration: <a href={link}>link</a></html>"
-        return Mailgun.send_email([email], subject, text, html)
+        return Mailgun.send_email([self.email], subject, text, html)
 
 
 

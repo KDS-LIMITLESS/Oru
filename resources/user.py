@@ -19,10 +19,10 @@ from db import db
 from models.user import UserModel, TokenBlacklist
 from schemas.user import UserSchema
 from password import psw
+from utils.mailgun import MailgunException
 
 user_schema = UserSchema(many=True)
 
-    
 class User(Resource):
  
     @classmethod
@@ -71,10 +71,16 @@ class UserRegister(Resource):
 
         try:
             user.save_to_db()
-            user.send_email(new_user['email'])
-            return {"Message": f"User {new_user['username']} Created Sucessfully. Check your email for your confirmation token"}, 201
+            user.send_email()
+            return {"Message": f"User {new_user['username']} Created Sucessfully. Check your email for your confirmation token"}, 200
+
+        except MailgunException as e:
+            user.delete_from_db()
+            return {"message": str(e)}, 500
+
         except:
             traceback.print_exc()
+            user.delete_from_db()
             return {"message": "Internal Server Error"}, 500
         
 
@@ -124,9 +130,12 @@ class TokenRefresh(Resource):
         return {"access_token": new_token}, 200
 
 class UserConfirmation(Resource):
-    @classmethod
-    def get(cls, user_id=UserModel.id):
-        find_user = UserModel.find_user_by_id(user_id)
+
+    def get(self, id:int):
+        print(id)
+
+        find_user = UserModel.find_user_by_id(id)
+        print(find_user.email)
 
         if not find_user:
             return {"message": "User not found"}, 404

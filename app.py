@@ -41,7 +41,7 @@ api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(UserLogout, "/logout/access")
 api.add_resource(TokenRefresh, "/refresh/access")
-api.add_resource(UserConfirmation, "/userconfirm")
+api.add_resource(UserConfirmation, "/userconfirm", "/userconfirm/<int:id>")
 
 
 
