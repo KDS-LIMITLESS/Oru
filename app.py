@@ -25,7 +25,6 @@ app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=1)
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=5)
 
-#SECRET_KEY = environ.get("FLASK_SECRET_KEY")
 
 api = Api(app)
 #flask_bcrypt = Bcrypt(app)

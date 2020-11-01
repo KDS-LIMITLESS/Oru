@@ -12,11 +12,11 @@ from marshmallow import ValidationError
 from werkzeug.security import safe_str_cmp
 
 from db import db
+from utils.mailgun import MailgunException
 from models.user import TokenBlacklist, UserModel
 from password import psw
 from schemas.user import UserSchema
 from schemas.user_confirm import UserConfirmationSchema
-from utils.mailgun import MailgunException
 from models.user_confirm import UserConfirmationModel
 
 USER_NOT_FOUND = "User not Found!"
@@ -79,7 +79,7 @@ class UserRegister(Resource):
         new_user = request.get_json()
 
         if UserModel.find_user_by_email(new_user['email']):
-            return {"message": EMAIL_TAKEN.format(new_user['email'])}, 404
+            return {"message": EMAIL_TAKEN.format(new_user['email'])}, 400
         password = psw.generate_password_hash(new_user['password'])
         user = UserModel(new_user['username'], password ,new_user['email'])
 

@@ -58,8 +58,8 @@ class UserModel(db.Model):
     def send_email(self):
         subject = "Registration Confirmation"
         link = request.url_root[:-1] + url_for("userconfirm") + "/" + str(self.recent_confirmation.confirmation_id)
-        text = f"Please click the link to confirm your registration: {link}"
-        html = f"<html>Please click the link to confirm your registration: <a href={link}>link</a></html>"
+        text = f"Please click the link to confirm your registration:{link}"
+        html = f"<html>Click the link to confirm your registration:<a href={link}>Confirmation Token</a></html>"
         return Mailgun.send_email([self.email], subject, text, html)
 
 
