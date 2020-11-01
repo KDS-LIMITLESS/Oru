@@ -16,6 +16,7 @@ flask-reqparse = "*"
 marshmallow-sqlalchemy = "*"
 flask-jwt-extended = "*"
 requests = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.6"
