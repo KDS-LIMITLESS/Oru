@@ -13,6 +13,7 @@ from password import psw
 from resources.user import (TokenRefresh, User, UserConfirm, UserLogin,
                             UserLogout, UserRegister, TestConfirmation)
 
+
 app = Flask(__name__)
 CORS(app)
 jwt = JWTManager(app)
