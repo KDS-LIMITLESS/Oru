@@ -20,18 +20,20 @@ class UserModel(db.Model):
     password = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(256), nullable=False, unique=True)
     country = db.Column(db.String(50), nullable=False)
+    phone_number = db.Column(db.String(15), nullable=False)
     
     confirmed = db.relationship(
         "UserConfirmationModel", lazy="dynamic", cascade="all, delete-orphan"
     )
     
 
-    def __init__(self, username, password, email, country:str,  **kwargs ):
+    def __init__(self, username, password, email, country:str, phone_number, **kwargs ):
 
         self.username = username
         self.password = password 
         self.email = email
         self.country = Country.get_country_details(country)
+        self.phone_number = Country.get_user_phonenumber(phone_number, self.country)
 
     @property
     def recent_confirmation(self) -> "UserConfirmationModel":
@@ -94,3 +96,9 @@ class TokenBlacklist(db.Model):
         query = cls.query.filter_by(jti=jti).first()
         return bool(query)    
 
+
+
+c = UserModel("ABC", "1234", "s.kamahjnr@gmail.com", "Morocco","800092508 ")
+
+print(c.country)
+print(c.phone_number)
