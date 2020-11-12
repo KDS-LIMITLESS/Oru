@@ -17,6 +17,9 @@ marshmallow-sqlalchemy = "*"
 flask-jwt-extended = "*"
 requests = "*"
 flask-cors = "*"
+phonenumbers = "*"
+phone-iso3166 = "*"
+iso3166 = "*"
 
 [requires]
 python_version = "3.6"
