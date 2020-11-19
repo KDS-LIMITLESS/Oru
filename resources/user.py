@@ -81,8 +81,12 @@ class UserRegister(Resource):
         if UserModel.find_user_by_email(new_user['email']):
             return {"message": EMAIL_TAKEN.format(new_user['email'])}, 400
         password = psw.generate_password_hash(new_user['password'])
-        user = UserModel(new_user['username'], password ,new_user['email'], new_user['country'])
-
+        user = UserModel(
+            new_user['username'], 
+            password ,new_user['email'], 
+            new_user['country'], 
+            new_user["phone_number"]
+        )
         try:
             user.save_to_db()
             confirmation = UserConfirmationModel(user.id)
