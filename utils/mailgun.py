@@ -1,6 +1,6 @@
 from typing import List
 from requests import Response, post
-from os import environ
+import os
 
 FAILED_LOAD_API_KEY = "Failed to load MailGun API key."
 FAILED_LOAD_DOMAIN = "Failed to load MailGun domain."
@@ -13,11 +13,11 @@ class MailgunException(Exception):
 
 
 class Mailgun:
-    MAILGUN_API_KEY = environ.get("MAILGUN_API_KEY")
-    MAILGUN_DOMAIN =  environ.get("MAILGUN_DOMAIN")
+    MAILGUN_API_KEY = os.environ["MAILGUN_API_KEY"]
+    MAILGUN_DOMAIN =  os.environ["MAILGUN_DOMAIN"]
 
-    FROM_TITLE =  environ.get("FROM_TITLE")
-    FROM_EMAIL =  environ.get("FROM_EMAIL")
+    FROM_TITLE = os.environ["FROM_TITLE"]
+    FROM_EMAIL = os.environ["FROM_EMAIL"]
 
     @classmethod
     def send_email(
@@ -47,3 +47,4 @@ class Mailgun:
 
 
 
+#print(Mailgun.send_email(["s.kamahjnr@gmail.com"],"Enquiry","This is me","<html><h1>HI</h1></html>"))
