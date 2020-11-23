@@ -13,5 +13,5 @@ from models.user import UserModel
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = UserModel
-        load_only = ("password","is_activated","id",)
+        load_only = ("password","id",)
 
