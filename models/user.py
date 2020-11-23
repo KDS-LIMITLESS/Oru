@@ -1,10 +1,11 @@
-from flask import request, url_for
 import requests
-from db import db
-from password import psw
-from models.user_confirm import UserConfirmationModel
-from utils.mailgun import Mailgun
+from flask import request, url_for
 
+from db import db
+from models.user_confirm import UserConfirmationModel
+from password import psw
+from utils.mailgun import Mailgun
+from phone import Country
 
 
 class UserModel(db.Model):
@@ -15,15 +16,26 @@ class UserModel(db.Model):
     password = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(256), nullable=False, unique=True)
 
+    country = db.Column(db.String(50), nullable=False)
+    phone_number = db.Column(db.String(15), nullable=False)
+
+    company_name = db.Column(db.String(150), unique=True)
+    
     confirmed = db.relationship(
         "UserConfirmationModel", lazy="dynamic", cascade="all, delete-orphan"
     )
+    
 
-    def __init__(self, username, password, email):
+    def __init__(self, username, password, email, country:str, phone_number, state, **kwargs ):
 
         self.username = username
         self.password = password 
         self.email = email
+        self.country = Country.get_country_name(Country, country)
+        self.region = Country.get_country_region(Country)
+        self.phone_number = Country.get_user_phonenumber(Country,phone_number)
+        self.state = Country.get_states(Country)
+        self.city = Country.get_city(Country, state)
 
     @property
     def recent_confirmation(self) -> "UserConfirmationModel":
@@ -47,14 +59,14 @@ class UserModel(db.Model):
     @classmethod
     def find_first_user_by_name(cls, name):
         return cls.query.filter(cls.username == name).first()
-    
+
     def hash_password(self):
         return psw.generate_password_hash(self.password)
     
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
-    
+
     def send_email(self):
         subject = "Registration Confirmation"
         link = request.url_root[:-1] + url_for("userconfirm") + "/" + str(self.recent_confirmation.confirmation_id)
@@ -84,8 +96,5 @@ class TokenBlacklist(db.Model):
     @classmethod
     def is_jti_blacklisted(cls, jti):
         query = cls.query.filter_by(jti=jti).first()
-        return bool(query)    
-    
-
-    
-
+        return bool(query) 
+        
