@@ -1,8 +1,8 @@
 from datetime import timedelta
 from os import environ
+from dotenv import load_dotenv
 
 from flask import Flask
-from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
@@ -13,18 +13,12 @@ from password import psw
 from resources.user import (TokenRefresh, User, UserConfirm, UserLogin,
                             UserLogout, UserRegister, TestConfirmation)
 
-app = Flask(__name__)
-CORS(app)
-jwt = JWTManager(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = environ.get("JWT_SECRET_KEY")
-app.config['JWT_ERROR_MESSAGE_KEY'] = "Error"
-app.config['JWT_BLACKLIST_ENABLED'] = True
-app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
-app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=1)
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=5)
 
+app = Flask(__name__)
+load_dotenv('.env', verbose=True)
+app.config.from_object('default_config')
+app.config.from_envvar('APPLICATION_SETTINGS')
+jwt = JWTManager(app)
 
 api = Api(app)
 #flask_bcrypt = Bcrypt(app)
