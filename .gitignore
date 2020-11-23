@@ -3,3 +3,4 @@
 *.vscode
 *__pycache__
 .env
+models/__pycache__/user.cpython-36.pyc
