@@ -18,15 +18,17 @@ class UserModel(db.Model):
 
     country = db.Column(db.String(50), nullable=False)
     phone_number = db.Column(db.String(15), nullable=False)
+    #state = db.Column(db.String(50), nullable=False)
+    #city = db.Column(db.String(50), nullable=False)
 
-    company_name = db.Column(db.String(150), unique=True)
+    #company_name = db.Column(db.String(150), unique=True)
     
     confirmed = db.relationship(
         "UserConfirmationModel", lazy="dynamic", cascade="all, delete-orphan"
     )
     
 
-    def __init__(self, username, password, email, country:str, phone_number, state, **kwargs ):
+    def __init__(self, username, password, email, country:str, phone_number, *args ):
 
         self.username = username
         self.password = password 
@@ -34,8 +36,8 @@ class UserModel(db.Model):
         self.country = Country.get_country_name(Country, country)
         self.region = Country.get_country_region(Country)
         self.phone_number = Country.get_user_phonenumber(Country,phone_number)
-        self.state = Country.get_states(Country)
-        self.city = Country.get_city(Country, state)
+        #self.state = Country.get_states(Country)
+        #self.city = Country.get_city(Country, state)
 
     @property
     def recent_confirmation(self) -> "UserConfirmationModel":
