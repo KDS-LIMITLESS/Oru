@@ -48,16 +48,16 @@ class User(Resource):
         print(user_schema.dump(get_user))
         return user_schema.dump(get_user), 200 
         
-    @classmethod
     @fresh_jwt_required
-    def put(cls,name):
+    def put(self,name):
         find_user = UserModel.find_user_by_name(name)
         if find_user:
             get_user = request.get_json()
             
             find_user[0].username = get_user["username"]
             find_user[0].password = psw.generate_password_hash(get_user["password"])
-            find_user[0].email = get_user["email"]
+            find_user[0].phone_number = get_user["phone_number"]
+
 
             db.session.commit()
             return user_schema.dump(find_user), 200
@@ -227,3 +227,6 @@ class TestConfirmation(Resource):
         except:
             traceback.print_exc()
             return{"message": RESEND_FAILED},500
+
+
+# How to get current logged in user from db 
