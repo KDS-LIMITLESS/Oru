@@ -12,7 +12,7 @@ from db import db
 from models.user import TokenBlacklist, UserModel
 from password import psw
 from resources.user import (TokenRefresh, User, UserConfirm, UserLogin,
-                            UserLogout, UserRegister, TestConfirmation)
+                            UserLogout, UserRegister, TestConfirmation, UpdateUser)
 from resources.image import ImageUpload
 from utils.image import IMAGE_SET
 
@@ -40,6 +40,7 @@ def check_if_token_in_blacklist(decrypted_token):
     return TokenBlacklist.is_jti_blacklisted(jti)
 
 api.add_resource(User, "/users/<string:name>")
+api.add_resource(UpdateUser, "/update")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(UserLogout, "/logout/access")

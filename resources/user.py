@@ -1,13 +1,13 @@
 import traceback
 import time
 
-from flask import make_response, render_template
+from flask import make_response, render_template, redirect, url_for
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 fresh_jwt_required, get_jwt_identity,
                                 get_raw_jwt, jwt_refresh_token_required,
                                 jwt_required, verify_fresh_jwt_in_request,
                                 verify_jwt_refresh_token_in_request)
-from flask_restful import Resource, request
+from flask_restful import Resource, request, abort
 from marshmallow import ValidationError
 from werkzeug.security import safe_str_cmp
 
@@ -15,6 +15,7 @@ from db import db
 from utils.mailgun import MailgunException
 from models.user import TokenBlacklist, UserModel
 from password import psw
+from phone import Country
 from schemas.user import UserSchema
 from schemas.user_confirm import UserConfirmationSchema
 from models.user_confirm import UserConfirmationModel
@@ -45,24 +46,8 @@ class User(Resource):
         get_user = UserModel.find_user_by_name(name) 
         if not get_user:
             return {'message': USER_NOT_FOUND }, 404
-        print(user_schema.dump(get_user))
         return user_schema.dump(get_user), 200 
         
-    @classmethod
-    @fresh_jwt_required
-    def put(cls,name):
-        find_user = UserModel.find_user_by_name(name)
-        if find_user:
-            get_user = request.get_json()
-            
-            find_user[0].username = get_user["username"]
-            find_user[0].password = psw.generate_password_hash(get_user["password"])
-            find_user[0].email = get_user["email"]
-
-            db.session.commit()
-            return user_schema.dump(find_user), 200
-        return {"message": USER_NOT_FOUND}, 400
-           
     @classmethod
     @fresh_jwt_required
     def delete(cls, name):
@@ -71,6 +56,32 @@ class User(Resource):
             return {"Message": USER_NOT_FOUND }, 400
         user.delete_from_db()
         return {"message": USER_DELETED.format(user.username)},200
+
+
+class UpdateUser(Resource):
+
+    @fresh_jwt_required
+    def put(self):
+        user_identity = get_jwt_identity() 
+        current_user = UserModel.find_user_by_email(user_identity) 
+        print(current_user)
+        
+        if current_user:
+            get_user = request.get_json()
+            print(current_user.password)
+            country = Country.get_country_name(Country, get_user['country'])
+            country_region = Country.get_country_region(Country)
+
+            current_user.username = get_user["username"]
+            current_user.password = psw.generate_password_hash(get_user["password"])
+            current_user.country = country
+            current_user.phone_number = Country.get_user_phonenumber(Country, get_user["phone_number"])
+            
+            db.session.commit()
+            print(current_user.username)
+
+            return {"message": "Your account has been successfully updated"}, 200
+        return {"message": USER_NOT_FOUND}, 404
 
 
 class UserRegister(Resource):
@@ -83,7 +94,8 @@ class UserRegister(Resource):
         password = psw.generate_password_hash(new_user['password'])
         user = UserModel(
             new_user['username'], 
-            password ,new_user['email'], 
+            password,
+            new_user['email'], 
             new_user['country'], 
             new_user["phone_number"]
         )
@@ -173,10 +185,6 @@ class UserConfirm(Resource):
         return make_response(
             render_template("confirmation_page.html", email=confirmation.user.email), 200, headers
         )
-
-
-
-
 
 
 # Test Class ||     Test Class ||       Test Class ||       Test Class ||       Test Class ||       Test Class ||       Test Class ||
