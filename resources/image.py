@@ -14,7 +14,7 @@ class ImageUpload(Resource):
     def post(self):
         data = image_schema.load(request.files)
         user_id = get_jwt_identity()
-        folder = f"user_{user_id}"
+        folder = f"{user_id}"
         try:
             image_path = image.save_image(data['image'], save_to_folder=folder)
             basename = image.get_basename(image_path)

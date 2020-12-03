@@ -24,8 +24,6 @@ app.config.from_envvar('APPLICATION_SETTINGS')
 jwt = JWTManager(app)
 
 api = Api(app)
-#flask_bcrypt = Bcrypt(app)
-
 
 patch_request_class(app, 10 * 1024 * 1024)
 configure_uploads(app, IMAGE_SET)
