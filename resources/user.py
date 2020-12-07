@@ -27,7 +27,7 @@ EMAIL_DOES_NOT_EXIST = "{} does not exist in our database"
 USER_CREATED = "Account created for {}. check your email for procedures to activate your account."
 INTERNAL_SERVER_ERROR = "We are having some issues with our servers at the moment. Please come back later" 
 NOT_ACTIVATED = "Account for {} has not yet been activated. Click the link sent to your email to activate your account."
-INCORRECT_PASSWORD = "Is this your password?"
+INCORRECT_EMAIL_OR_PASSWORD = "Is this your email or password?"
 LOGGED_OUT = "You have been logged out."
 CONFIRMATION_TOKEN_NOT_FOUND = "Confirmation token not found in database."
 EXPIRED_TOKEN = "Expired token, request for a new token"
@@ -122,12 +122,8 @@ class UserLogin(Resource):
     def post(cls):
         get_user_details = request.get_json()
         get_user_from_db = UserModel.find_user_by_email(get_user_details['email'])
-
-
-        if not get_user_from_db:
-            return {"message": EMAIL_DOES_NOT_EXIST.format(get_user_details['email'])}, 404
         
-        if psw.check_password_hash(get_user_from_db.password, get_user_details['password']):
+        if get_user_from_db and psw.check_password_hash(get_user_from_db.password, get_user_details['password']):
             confirmation = get_user_from_db.recent_confirmation
             if confirmation and confirmation.confirmed:
                 access_token = create_access_token(identity=get_user_from_db.email,fresh=True)
@@ -139,7 +135,7 @@ class UserLogin(Resource):
                 }, 200
 
             return {"message": NOT_ACTIVATED.format(get_user_from_db.email)}, 404
-        return {"message": INCORRECT_PASSWORD}, 401
+        return {"message": INCORRECT_EMAIL_OR_PASSWORD}, 400
 
 
 class UserLogout(Resource): 
