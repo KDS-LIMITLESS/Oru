@@ -34,6 +34,7 @@ EXPIRED_TOKEN = "Expired token, request for a new token"
 TOKEN_ALREADY_CONFIRMED = "This token has already been confirmed"
 RESEND_SUCCESSFULL = "Resend Successful"
 RESEND_FAILED = "Resend Failed"
+USER_DETAILS_REQUIRED = "username, email, password, country, phonenumber fields required"
 
 user_schema = UserSchema(many=True)
 
@@ -89,16 +90,22 @@ class UserRegister(Resource):
     def post(cls):
         new_user = request.get_json()
 
-        if UserModel.find_user_by_email(new_user['email']):
-            return {"message": EMAIL_TAKEN.format(new_user['email'])}, 400
-        password = psw.generate_password_hash(new_user['password'])
-        user = UserModel(
-            new_user['username'], 
-            password,
-            new_user['email'], 
-            new_user['country'], 
-            new_user["phone_number"]
-        )
+        try:
+            if UserModel.find_user_by_email(new_user['email']):
+                return {"message": EMAIL_TAKEN.format(new_user['email'])}, 400
+            password = psw.generate_password_hash(new_user['password'])
+            user = UserModel(
+                new_user['username'], 
+                password,
+                new_user['email'], 
+                new_user['country'], 
+                new_user["phone_number"]
+            )
+        except TypeError:
+            return {"message": USER_DETAILS_REQUIRED}, 404
+        except KeyError:
+            return {"message": USER_DETAILS_REQUIRED}, 404  # recheck #
+
         try:
             user.save_to_db()
             confirmation = UserConfirmationModel(user.id)
