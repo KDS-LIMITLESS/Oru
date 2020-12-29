@@ -34,7 +34,7 @@ EXPIRED_TOKEN = "Expired token, request for a new token"
 TOKEN_ALREADY_CONFIRMED = "This token has already been confirmed"
 RESEND_SUCCESSFULL = "Resend Successful"
 RESEND_FAILED = "Resend Failed"
-USER_DETAILS_REQUIRED = "username, email, password, country, phonenumber fields required"
+USER_DETAILS_REQUIRED = "Please fill in all fields marked with *"
 
 user_schema = UserSchema(many=True)
 
@@ -99,13 +99,16 @@ class UserRegister(Resource):
                 password,
                 new_user['email'], 
                 new_user['country'], 
-                new_user["phone_number"]
+                new_user["phone_number"],
+                new_user["state"],
+                new_user["city"]
             )
         except TypeError:
             return {"message": USER_DETAILS_REQUIRED}, 404
-        except KeyError:
-            return {"message": USER_DETAILS_REQUIRED}, 404  # recheck #
-
+        #except KeyError:     
+        #    return {"message": USER_DETAILS_REQUIRED}, 404  # recheck #
+        except KeyError as error:        
+            return error, 404
         try:
             user.save_to_db()
             confirmation = UserConfirmationModel(user.id)
