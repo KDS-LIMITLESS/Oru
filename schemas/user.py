@@ -15,5 +15,9 @@ class UserSchema(Schema):
     city = fields.String(required=True)
 
 
+class UserLoginSchema(Schema):
+    password = fields.String(required=True, validate=validate.Length(min=8, max=16))
+    email = fields.Email(required=True)
+
 
   

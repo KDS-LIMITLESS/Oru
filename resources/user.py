@@ -16,7 +16,7 @@ from utils.mailgun import MailgunException
 from models.user import TokenBlacklist, UserModel
 from password import psw
 from phone import Country
-from schemas.user import UserSchema
+from schemas.user import UserSchema, UserLoginSchema
 from schemas.user_confirm import UserConfirmationSchema
 from models.user_confirm import UserConfirmationModel
 
@@ -35,7 +35,10 @@ TOKEN_ALREADY_CONFIRMED = "This token has already been confirmed"
 RESEND_SUCCESSFULL = "Resend Successful"
 RESEND_FAILED = "Resend Failed"
 USER_DETAILS_REQUIRED = "Please fill in all fields marked with *"
-user_schema = UserSchema()
+
+
+user_schema = UserSchema(load_only=('password', 'id',))
+login_schema = UserLoginSchema(load_only=('password'))
 
 
 class User(Resource):
@@ -99,7 +102,6 @@ class UserRegister(Resource):
 
         try:
             c_user = UserModel(**user)
-            psw.generate_password_hash(user['password'])
             c_user.save_to_db()
             confirmation = UserConfirmationModel(c_user.id)
             confirmation.save_to_db()
@@ -121,9 +123,11 @@ class UserLogin(Resource):
     @classmethod
     def post(cls):
         get_user_details = request.get_json()
+        user = login_schema.load(get_user_details)
+
         get_user_from_db = UserModel.find_user_by_email(get_user_details['email'])
         
-        if get_user_from_db and psw.check_password_hash(get_user_from_db.password, get_user_details['password']):
+        if get_user_from_db and psw.check_password_hash(get_user_from_db.password, user['password']):
             confirmation = get_user_from_db.recent_confirmation
             if confirmation and confirmation.confirmed:
                 access_token = create_access_token(identity=get_user_from_db.email,fresh=True)
