@@ -1,4 +1,3 @@
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, ModelSchema
 from models.user import UserModel
 from marshmallow import validate, ValidationError, Schema, fields, validates
 

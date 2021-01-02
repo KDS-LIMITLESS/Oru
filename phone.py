@@ -16,8 +16,12 @@ class Country:
             return self.country_name.name.upper()
         except KeyError:
             return f"{country_name} not found!"
-
+        
     def get_country_region(self):
+        try:
+            self.country_name
+        except AttributeError:
+            return "."
         try:
             #country_name = iso3166.countries[c]
             self.region = self.country_name.alpha2
@@ -29,6 +33,11 @@ class Country:
         
     def get_user_phonenumber(self, phonenumber:str):
         try:
+            self.region
+        except AttributeError:
+            return "."
+            
+        try:
             #country_region = cls.get_country_region(country)
             phone = phonenumbers.parse(phonenumber,self.region)
         except phonenumbers.phonenumberutil.NumberParseException:
@@ -38,6 +47,10 @@ class Country:
         return f"Invalid Number"
 
     def get_states(self, state_name:str):
+        try:
+            self.region
+        except AttributeError:
+            return "."
         country_id = self.region  #get_country_region(country)
         resp = requests.get(f"http://naijacrawl.com/api/api/v2/free-get-state-list?country_code={country_id}").text
         # convert the Response object to dict with json.loads()
@@ -49,6 +62,10 @@ class Country:
         
 
     def get_city(self, city_name):
+        try:
+            self.state_id
+        except AttributeError:
+            return "."
         state_id = self.state_id
         response = requests.get(f"http://naijacrawl.com/api/api/v2/free-get-city-list?state_id={state_id}").text.capitalize()
         response_dict = json.loads(response)

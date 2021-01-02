@@ -53,11 +53,8 @@ class UserModel(db.Model):
     
     @classmethod
     def find_user_by_name(cls, name):
-        return cls.query.filter(cls.username == name).all()
-
-    @classmethod
-    def find_first_user_by_name(cls, name):
         return cls.query.filter(cls.username == name).first()
+
 
     def hash_password(self):
         return psw.generate_password_hash(self.password)
