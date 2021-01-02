@@ -88,38 +88,31 @@ class UpdateUser(Resource):
 class UserRegister(Resource):
     @classmethod
     def post(cls):
-        new_user = request.get_json()
+        user_details = request.get_json()
 
         try:
-            if UserModel.find_user_by_email(new_user['email']):
-                return {"message": EMAIL_TAKEN.format(new_user['email'])}, 400
-            password = psw.generate_password_hash(new_user['password'])
-            user = UserModel(
-                new_user['username'], 
-                password,
-                new_user['email'], 
-                new_user['country'], 
-                new_user["phone_number"]
-            )
-        except TypeError:
-            return {"message": USER_DETAILS_REQUIRED}, 404
-        except KeyError:
-            return {"message": USER_DETAILS_REQUIRED}, 404  # recheck #
+            user= user_schema.load(user_details)
+        except ValidationError as err:
+            return err.messages, 404
+
+        if UserModel.find_user_by_email(user['email']):
+            return {"message": EMAIL_TAKEN.format(user['email'])}, 404
 
         try:
-            user.save_to_db()
-            confirmation = UserConfirmationModel(user.id)
+            c_user = UserModel(**user)
+            c_user.save_to_db()
+            confirmation = UserConfirmationModel(c_user.id)
             confirmation.save_to_db()
-            user.send_email()
-            return {"Message": USER_CREATED.format(new_user['username'])}, 200
+            c_user.send_email()
+            return {"message": USER_CREATED.format(c_user.username)}, 200
 
         except MailgunException as e:
-            user.delete_from_db()
+            c_user.delete_from_db()
             return {"message": str(e)}, 500
 
         except:
             traceback.print_exc()
-            user.delete_from_db()
+            c_user.delete_from_db()
             return {"message": INTERNAL_SERVER_ERROR}, 500
         
 
