@@ -36,7 +36,8 @@ RESEND_SUCCESSFULL = "Resend Successful"
 RESEND_FAILED = "Resend Failed"
 USER_DETAILS_REQUIRED = "username, email, password, country, phonenumber fields required"
 
-user_schema = UserSchema(many=True)
+user_schema = UserSchema(load_only=('password', 'id',))
+login_schema = UserLoginSchema(load_only=('password'))
 
 
 class User(Resource):
@@ -121,9 +122,11 @@ class UserLogin(Resource):
     @classmethod
     def post(cls):
         get_user_details = request.get_json()
+        user = login_schema.load(get_user_details)
+
         get_user_from_db = UserModel.find_user_by_email(get_user_details['email'])
         
-        if get_user_from_db and psw.check_password_hash(get_user_from_db.password, get_user_details['password']):
+        if get_user_from_db and psw.check_password_hash(get_user_from_db.password, user['password']):
             confirmation = get_user_from_db.recent_confirmation
             if confirmation and confirmation.confirmed:
                 access_token = create_access_token(identity=get_user_from_db.email,fresh=True)
