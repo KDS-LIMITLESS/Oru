@@ -1,11 +1,13 @@
 import requests
 from flask import request, url_for
+from typing import Dict, List
 
 from db import db
 from models.user_confirm import UserConfirmationModel
 from password import psw
 from utils.mailgun import Mailgun
 from phone import Country
+from password import psw
 
 
 class UserModel(db.Model):
@@ -21,7 +23,6 @@ class UserModel(db.Model):
     state = db.Column(db.String(50), nullable=False)
     city = db.Column(db.String(50), nullable=False)
 
-    #company_name = db.Column(db.String(150), unique=True)
     
     confirmed = db.relationship(
         "UserConfirmationModel", lazy="dynamic", cascade="all, delete-orphan"
@@ -30,7 +31,7 @@ class UserModel(db.Model):
 
     def __init__(self, username, password, email, country:str, phone_number, state, city, *args ):
         self.username = username
-        self.password = password 
+        self.password = psw.generate_password_hash(password)
         self.email = email
         self.country = Country.get_country_name(Country, country)
         self.region = Country.get_country_region(Country)
@@ -42,11 +43,9 @@ class UserModel(db.Model):
     def recent_confirmation(self) -> "UserConfirmationModel":
         return self.confirmed.order_by(db.desc(UserConfirmationModel.token_expires_at)).first()
 
-
     @classmethod
     def find_user_by_id(cls, id) -> "UserModel":
         return cls.query.filter(cls.id == id).first()
-
 
     @classmethod
     def find_user_by_email(cls, email):
@@ -54,9 +53,8 @@ class UserModel(db.Model):
     
     @classmethod
     def find_user_by_name(cls, name):
-        return cls.query.filter(cls.username == name).all()
+        return cls.query.filter(cls.username == name).first()
 
-    
     @classmethod
     def find_first_user_by_name(cls, name):
         return cls.query.filter(cls.username == name).first()
@@ -74,8 +72,6 @@ class UserModel(db.Model):
         text = f"Please click the link to confirm your registration:{link}"
         html = f"<html>Click the link to confirm your registration:<a href={link}>Confirmation Token</a></html>"
         return Mailgun.send_email([self.email], subject, text, html)
-
-
 
     def delete_from_db(self):
         db.session.delete(self)

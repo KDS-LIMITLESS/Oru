@@ -16,7 +16,7 @@ from utils.mailgun import MailgunException
 from models.user import TokenBlacklist, UserModel
 from password import psw
 from phone import Country
-from schemas.user import UserSchema
+from schemas.user import UserSchema, UserLoginSchema
 from schemas.user_confirm import UserConfirmationSchema
 from models.user_confirm import UserConfirmationModel
 
@@ -34,14 +34,12 @@ EXPIRED_TOKEN = "Expired token, request for a new token"
 TOKEN_ALREADY_CONFIRMED = "This token has already been confirmed"
 RESEND_SUCCESSFULL = "Resend Successful"
 RESEND_FAILED = "Resend Failed"
-USER_DETAILS_REQUIRED = "username, email, password, country, phonenumber fields required"
 
 user_schema = UserSchema(load_only=('password', 'id',))
 login_schema = UserLoginSchema(load_only=('password'))
 
 
 class User(Resource):
- 
     @classmethod
     @jwt_refresh_token_required
     def get(cls, name):
@@ -116,8 +114,6 @@ class UserRegister(Resource):
             c_user.delete_from_db()
             return {"message": INTERNAL_SERVER_ERROR}, 500
         
-
-
 class UserLogin(Resource):
     @classmethod
     def post(cls):
