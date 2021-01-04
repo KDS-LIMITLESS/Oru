@@ -12,7 +12,7 @@ from marshmallow import ValidationError
 from werkzeug.security import safe_str_cmp
 
 from db import db
-from utils.mailgun import MailgunException
+from libs.mailgun import MailgunException
 from models.user import TokenBlacklist, UserModel
 from password import psw
 from phone import Country
@@ -54,7 +54,7 @@ class User(Resource):
     @classmethod
     @fresh_jwt_required
     def delete(cls, name):
-        user = UserModel.find_first_user_by_name(name)
+        user = UserModel.find_user_by_name(name)
         if not user:
             return {"Message": USER_NOT_FOUND }, 400
         user.delete_from_db()

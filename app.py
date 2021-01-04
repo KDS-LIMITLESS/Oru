@@ -14,7 +14,7 @@ from password import psw
 from resources.user import (TokenRefresh, User, UserConfirm, UserLogin,
                             UserLogout, UserRegister, TestConfirmation, UpdateUser)
 from resources.image import ImageUpload
-from utils.image import IMAGE_SET
+from libs.image import IMAGE_SET
 
 
 app = Flask(__name__)

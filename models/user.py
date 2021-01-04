@@ -5,10 +5,9 @@ from typing import Dict, List
 from db import db
 from models.user_confirm import UserConfirmationModel
 from password import psw
-from utils.mailgun import Mailgun
+from libs.mailgun import Mailgun 
 from phone import Country
 from password import psw
-
 
 class UserModel(db.Model):
     __tablename__ = "users"
