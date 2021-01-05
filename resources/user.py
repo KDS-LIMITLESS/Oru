@@ -12,11 +12,7 @@ from marshmallow import ValidationError
 from werkzeug.security import safe_str_cmp
 
 from db import db
-<<<<<<< HEAD
 from libs.mailgun import MailgunException
-=======
-from utils.mailgun import MailgunException
->>>>>>> github/master
 from models.user import TokenBlacklist, UserModel
 from password import psw
 from phone import Country
