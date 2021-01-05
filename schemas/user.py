@@ -1,4 +1,3 @@
-from models.user import UserModel
 from marshmallow import validate, ValidationError, Schema, fields, validates
 
 from password import psw
