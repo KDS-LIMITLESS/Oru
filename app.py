@@ -11,7 +11,7 @@ from flask_uploads import configure_uploads, patch_request_class
 from db import db
 from models.user import TokenBlacklist, UserModel
 from password import psw
-from resources.user import (TokenRefresh, User, UserConfirm, UserLogin,
+from resources.user import (TokenRefresh, User, UserConfirm, UserLogin, DeleteUser,
                             UserLogout, UserRegister, TestConfirmation, UpdateUser)
 from resources.image import ImageUpload
 from libs.image import IMAGE_SET
@@ -39,6 +39,7 @@ def check_if_token_in_blacklist(decrypted_token):
 
 api.add_resource(User, "/users/<string:name>")
 api.add_resource(UpdateUser, "/update")
+api.add_resource(DeleteUser, "/delete")
 api.add_resource(UserRegister, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(UserLogout, "/logout/access")

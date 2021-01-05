@@ -51,10 +51,13 @@ class User(Resource):
             return {'message': USER_NOT_FOUND }, 404
         return user_schema.dump(get_user), 200 
         
+
+class DeleteUser(Resource):
     @classmethod
     @fresh_jwt_required
-    def delete(cls, name):
-        user = UserModel.find_user_by_name(name)
+    def delete(cls):
+        user_identity = get_jwt_identity()
+        user = UserModel.find_user_by_email(user_identity)
         if not user:
             return {"Message": USER_NOT_FOUND }, 400
         user.delete_from_db()
@@ -209,7 +212,7 @@ class TestConfirmation(Resource):
         )
 
                     
-# Resend_confirmation_token resource ||    Resend_confirmation_token resource || Resend_confirmation_token resource 
+    # Resend_confirmation_token resource ||    Resend_confirmation_token resource || Resend_confirmation_token resource 
 
     @classmethod
     def post(cls, user_id):
