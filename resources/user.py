@@ -70,11 +70,14 @@ class UpdateUser(Resource):
     def put(self):
         user_identity = get_jwt_identity() 
         current_user = UserModel.find_user_by_email(user_identity) 
-        print(current_user)
         
         if current_user:
-            get_user = request.get_json()
-            print(current_user.password)
+            user = request.get_json()
+            try:
+                get_user = user_schema.load(user)
+            except ValidationError as err:
+                return err.messages, 404
+
             country = Country.get_country_name(Country, get_user['country'])
             country_region = Country.get_country_region(Country)
 
@@ -82,9 +85,10 @@ class UpdateUser(Resource):
             current_user.password = psw.generate_password_hash(get_user["password"])
             current_user.country = country
             current_user.phone_number = Country.get_user_phonenumber(Country, get_user["phone_number"])
+            current_user.state = Country.get_states(Country, get_user['state'])
+            current_user.city = Country.get_city(Country, get_user['city'])
             
             db.session.commit()
-            print(current_user.username)
 
             return {"message": "Your account has been successfully updated"}, 200
         return {"message": USER_NOT_FOUND}, 404
