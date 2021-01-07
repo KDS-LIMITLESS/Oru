@@ -18,4 +18,20 @@ class UserLoginSchema(Schema):
     email = fields.Email(required=True)
 
 
-  
+class UsernameSchema(Schema):
+    username = fields.String(required=True, validate=validate.Length(min=4, max=16))
+
+
+class EmailSchema(Schema):
+    email = fields.Email(required=True)
+
+
+class PasswordSchema(Schema):
+    password = fields.String(required=True, validate=validate.Length(min=8, max=16))
+
+
+class LocationSchema(Schema):
+    country = fields.String(required=True)
+    phone_number =  fields.String(required=True)
+    state = fields.String(required=True)
+    city = fields.String(required=True)

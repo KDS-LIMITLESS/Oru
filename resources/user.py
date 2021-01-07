@@ -16,7 +16,7 @@ from libs.mailgun import MailgunException
 from models.user import TokenBlacklist, UserModel
 from password import psw
 from phone import Country
-from schemas.user import UserSchema, UserLoginSchema
+from schemas.user import UserSchema, UserLoginSchema, UsernameSchema, EmailSchema, PasswordSchema, LocationSchema
 from schemas.user_confirm import UserConfirmationSchema
 from models.user_confirm import UserConfirmationModel
 
@@ -35,7 +35,8 @@ TOKEN_ALREADY_CONFIRMED = "This token has already been confirmed"
 RESEND_SUCCESSFULL = "Resend Successful"
 RESEND_FAILED = "Resend Failed"
 USER_DETAILS_REQUIRED = "Please fill in all fields marked with *"
-
+EMAIL_UPDATED = "Click on the link sent to the email address provided to update your account"
+ACCOUNT_UPDATED = "Your account has been successfully updated"
 
 user_schema = UserSchema(load_only=('password', 'id',))
 login_schema = UserLoginSchema(load_only=('password'))
@@ -64,33 +65,106 @@ class DeleteUser(Resource):
         return {"message": USER_DELETED.format(user.username)},200
 
 
-class UpdateUser(Resource):
-
+class UpdateUserUsername(Resource):
     @fresh_jwt_required
     def put(self):
+        username_schema = UsernameSchema()
         user_identity = get_jwt_identity() 
         current_user = UserModel.find_user_by_email(user_identity) 
         
         if current_user:
             user = request.get_json()
             try:
-                get_user = user_schema.load(user)
+                get_user = username_schema.load(user)
             except ValidationError as err:
                 return err.messages, 404
 
-            country = Country.get_country_name(Country, get_user['country'])
-            country_region = Country.get_country_region(Country)
-
             current_user.username = get_user["username"]
+
+            db.session.commit()
+
+            return {"message": ACCOUNT_UPDATED}, 200
+        return {"message": USER_NOT_FOUND}, 404
+
+
+class UpdateUserEmail(Resource):
+    @fresh_jwt_required
+    def put(self):
+        email_schema = EmailSchema()
+        user_identity = get_jwt_identity() 
+        current_user = UserModel.find_user_by_email(user_identity) 
+        
+        if current_user:
+            user = request.get_json()
+            try:
+                get_user = email_schema.load(user)
+            except ValidationError as err:
+                return err.messages, 404
+
+            try:
+                current_user.email = get_user["email"]
+
+                if get_user['email'] == current_user.email or UserModel.find_user_by_email(get_user['email']):
+                    return {"message": EMAIL_TAKEN.format(get_user['email'])}, 400
+
+                new_confirmation = UserConfirmationModel(current_user.id)
+                new_confirmation.save_to_db()
+                current_user.send_email()
+
+                db.session.commit()
+                return {"message": EMAIL_UPDATED}, 200
+
+            except (MailgunException, traceback.print_exc()) as err:
+                return {'message': str(err)}, 500
+
+        return {"message": USER_NOT_FOUND}, 404
+
+        
+class UpdateUserPassword(Resource):
+    @fresh_jwt_required
+    def put(self):
+        password_schema = PasswordSchema()
+        user_identity = get_jwt_identity() 
+        current_user = UserModel.find_user_by_email(user_identity) 
+        
+        if current_user:
+            user = request.get_json()
+            try:
+                get_user = password_schema.load(user)
+            except ValidationError as err:
+                return err.messages, 404
+
             current_user.password = psw.generate_password_hash(get_user["password"])
-            current_user.country = country
+
+            db.session.commit()
+
+            return {"message": ACCOUNT_UPDATED}, 200
+        return {"message": USER_NOT_FOUND}, 404
+        
+
+class UpdateUserLocation(Resource):
+    @fresh_jwt_required
+    def put(self):
+        location_schema = LocationSchema()
+        user_identity = get_jwt_identity() 
+        current_user = UserModel.find_user_by_email(user_identity) 
+        
+        if current_user:
+            user = request.get_json()
+            try:
+                get_user = location_schema.load(user)
+            except ValidationError as err:
+                return err.messages, 404
+
+            current_user.country = Country.get_country_name(Country, get_user['country'])
+            country_region = Country.get_country_region(Country)
             current_user.phone_number = Country.get_user_phonenumber(Country, get_user["phone_number"])
             current_user.state = Country.get_states(Country, get_user['state'])
             current_user.city = Country.get_city(Country, get_user['city'])
             
             db.session.commit()
 
-            return {"message": "Your account has been successfully updated"}, 200
+            return {"message": ACCOUNT_UPDATED}, 200
         return {"message": USER_NOT_FOUND}, 404
 
 
@@ -124,7 +198,6 @@ class UserRegister(Resource):
             c_user.delete_from_db()
             return {"message": INTERNAL_SERVER_ERROR}, 500
         
-
 
 class UserLogin(Resource):
     @classmethod
@@ -170,8 +243,8 @@ class TokenRefresh(Resource):
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}, 200
 
-# User_confirmation_token resource
-class UserConfirm(Resource):
+                    
+class UserConfirm(Resource):     # User_confirmation_token resource
 
     def get(self, confirmation_id:str):
 
@@ -193,10 +266,8 @@ class UserConfirm(Resource):
             render_template("confirmation_page.html", email=confirmation.user.email), 200, headers
         )
 
-
-# Test Class ||     Test Class ||       Test Class ||       Test Class ||       Test Class ||       Test Class ||       Test Class ||
-
-class TestConfirmation(Resource):
+              
+class TestConfirmation(Resource):    # Test Class
     @classmethod
     def get(cls, user_id):
         user = UserModel.find_user_by_id(user_id)
@@ -214,12 +285,9 @@ class TestConfirmation(Resource):
             },
             200,
         )
-
-                    
-    # Resend_confirmation_token resource ||    Resend_confirmation_token resource || Resend_confirmation_token resource 
-
+                 
     @classmethod
-    def post(cls, user_id):
+    def post(cls, user_id):     # Resend_confirmation_token resource 
         user = UserModel.find_user_by_id(user_id)
 
         if not user:
