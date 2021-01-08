@@ -14,11 +14,11 @@ class UserModel(db.Model):
 
     id = db.Column(db.Integer, primary_key= True)
     username = db.Column(db.String(10), nullable=False)
-    password = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(256), nullable=False, unique=True)
 
     country = db.Column(db.String(50), nullable=False)
-    phone_number = db.Column(db.String(15), nullable=False)
+    phone_number = db.Column(db.String(30), nullable=False)
     state = db.Column(db.String(50), nullable=False)
     city = db.Column(db.String(50), nullable=False)
 
@@ -30,7 +30,7 @@ class UserModel(db.Model):
 
     def __init__(self, username, password, email, country:str, phone_number, state, city, *args ):
         self.username = username
-        self.password = psw.generate_password_hash(password)
+        self.password = psw.generate_password_hash(password).decode('utf8')
         self.email = email
         self.country = Country.get_country_name(Country, country)
         self.region = Country.get_country_region(Country)
