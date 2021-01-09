@@ -1,20 +1,18 @@
-import requests
 from flask import request, url_for
-from typing import Dict, List
 
 from db import db
 from models.user_confirm import UserConfirmationModel
-from password import psw
-from libs.mailgun import Mailgun 
+from libs.mailgun import Mailgun
 from phone import Country
-from password import psw
+import bcrypt
+
 
 class UserModel(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key= True)
+    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(10), nullable=False)
-    password = db.Column(db.String(50), nullable=False)
+    password = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(256), nullable=False, unique=True)
 
     country = db.Column(db.String(50), nullable=False)
@@ -22,19 +20,17 @@ class UserModel(db.Model):
     state = db.Column(db.String(50), nullable=False)
     city = db.Column(db.String(50), nullable=False)
 
-    
     confirmed = db.relationship(
         "UserConfirmationModel", lazy="dynamic", cascade="all, delete-orphan"
     )
-    
 
-    def __init__(self, username, password, email, country:str, phone_number, state, city, *args ):
+    def __init__(self, username, password, email, country: str, phone_number, state, city, *args):
         self.username = username
-        self.password = psw.generate_password_hash(password).decode('utf8')
+        self.password = bcrypt.hashpw(password=password.encode('utf8'), salt=bcrypt.gensalt()).decode('utf8')
         self.email = email
         self.country = Country.get_country_name(Country, country)
         self.region = Country.get_country_region(Country)
-        self.phone_number = Country.get_user_phonenumber(Country,phone_number)
+        self.phone_number = Country.get_user_phonenumber(Country, phone_number)
         self.state = Country.get_states(Country, state)
         self.city = Country.get_city(Country, city)
 
@@ -49,15 +45,11 @@ class UserModel(db.Model):
     @classmethod
     def find_user_by_email(cls, email):
         return cls.query.filter(cls.email == email).first()
-    
+
     @classmethod
     def find_user_by_name(cls, name):
         return cls.query.filter(cls.username == name).first()
 
-
-    def hash_password(self):
-        return psw.generate_password_hash(self.password)
-    
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
@@ -90,4 +82,3 @@ class TokenBlacklist(db.Model):
     def is_jti_blacklisted(cls, jti):
         query = cls.query.filter_by(jti=jti).first()
         return bool(query) 
-        

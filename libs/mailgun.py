@@ -14,14 +14,13 @@ class MailgunException(Exception):
 
 class Mailgun:
     MAILGUN_API_KEY = os.environ["MAILGUN_API_KEY"]
-    MAILGUN_DOMAIN =  os.environ["MAILGUN_DOMAIN"]
+    MAILGUN_DOMAIN = os.environ["MAILGUN_DOMAIN"]
 
     FROM_TITLE = os.environ["FROM_TITLE"]
     FROM_EMAIL = os.environ["FROM_EMAIL"]
 
     @classmethod
-    def send_email(
-        cls, email: List[str], subject: str, text: str, html: str) -> Response:
+    def send_email(cls, email: List[str], subject: str, text: str, html: str) -> Response:
         if cls.MAILGUN_API_KEY is None:
             raise MailgunException(FAILED_LOAD_API_KEY)
 
@@ -42,9 +41,4 @@ class Mailgun:
 
         if response.status_code != 200:
             raise MailgunException(ERROR_SENDING_EMAIL)
-
         return response
-
-
-
-#print(Mailgun.send_email(["s.kamahjnr@gmail.com"],"Enquiry","This is me","<html><h1>HI</h1></html>"))

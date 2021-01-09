@@ -1,22 +1,25 @@
 import traceback
 import time
 
-from flask import make_response, render_template, redirect, url_for
-from flask_jwt_extended import (create_access_token, create_refresh_token,
+import bcrypt
+from flask import make_response, render_template
+from flask_jwt_extended import (
+                                create_access_token, create_refresh_token,
                                 fresh_jwt_required, get_jwt_identity,
                                 get_raw_jwt, jwt_refresh_token_required,
-                                jwt_required, verify_fresh_jwt_in_request,
-                                verify_jwt_refresh_token_in_request)
-from flask_restful import Resource, request, abort
+                            )
+from flask_restful import Resource, request
 from marshmallow import ValidationError
 from werkzeug.security import safe_str_cmp
 
 from db import db
 from libs.mailgun import MailgunException
 from models.user import TokenBlacklist, UserModel
-from password import psw
 from phone import Country
-from schemas.user import UserSchema, UserLoginSchema, UsernameSchema, EmailSchema, PasswordSchema, LocationSchema
+from schemas.user import (
+                            UserSchema, UserLoginSchema, UsernameSchema,
+                            EmailSchema, PasswordSchema, LocationSchema
+                        )
 from schemas.user_confirm import UserConfirmationSchema
 from models.user_confirm import UserConfirmationModel
 
@@ -51,7 +54,7 @@ class User(Resource):
         if not get_user:
             return {'message': USER_NOT_FOUND }, 404
         return user_schema.dump(get_user), 200 
-        
+
 
 class DeleteUser(Resource):
     @classmethod
@@ -119,7 +122,7 @@ class UpdateUserEmail(Resource):
 
         return {"message": USER_NOT_FOUND}, 404
 
-        
+
 class UpdateUserPassword(Resource):
     @fresh_jwt_required
     def put(self):
@@ -140,7 +143,7 @@ class UpdateUserPassword(Resource):
 
             return {"message": ACCOUNT_UPDATED}, 200
         return {"message": USER_NOT_FOUND}, 404
-        
+
 
 class UpdateUserLocation(Resource):
     @fresh_jwt_required
@@ -174,7 +177,7 @@ class UserRegister(Resource):
         user_details = request.get_json()
 
         try:
-            user= user_schema.load(user_details)
+            user = user_schema.load(user_details)
         except ValidationError as err:
             return err.messages, 404
 
@@ -193,11 +196,11 @@ class UserRegister(Resource):
             c_user.delete_from_db()
             return {"message": str(e)}, 500
 
-        except:
+        except EnvironmentError:
             traceback.print_exc()
             c_user.delete_from_db()
             return {"message": INTERNAL_SERVER_ERROR}, 500
-        
+
 
 class UserLogin(Resource):
     @classmethod
@@ -206,8 +209,8 @@ class UserLogin(Resource):
         user = login_schema.load(get_user_details)
 
         get_user_from_db = UserModel.find_user_by_email(get_user_details['email'])
-        
-        if get_user_from_db and psw.check_password_hash(get_user_from_db.password, user['password']):
+
+        if get_user_from_db and bcrypt.checkpw(user['password'], get_user_from_db.password):
             confirmation = get_user_from_db.recent_confirmation
             if confirmation and confirmation.confirmed:
                 access_token = create_access_token(identity=get_user_from_db.email,fresh=True)
@@ -222,19 +225,19 @@ class UserLogin(Resource):
         return {"message": INCORRECT_EMAIL_OR_PASSWORD}, 400
 
 
-class UserLogout(Resource): 
+class UserLogout(Resource):
     @classmethod
     @jwt_refresh_token_required
     def post(cls):
         jti = get_raw_jwt()['jti']
         try:
-            revoked_token = TokenBlacklist(jti = jti)
+            revoked_token = TokenBlacklist(jti=jti)
             revoked_token.add()
             return {"message": LOGGED_OUT}, 200
-        except:
+        except EnvironmentError:
             return {"message": INTERNAL_SERVER_ERROR}, 500
-        
-    
+
+
 class TokenRefresh(Resource):
     @classmethod
     @jwt_refresh_token_required
@@ -243,10 +246,10 @@ class TokenRefresh(Resource):
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}, 200
 
-                    
-class UserConfirm(Resource):     # User_confirmation_token resource
 
-    def get(self, confirmation_id:str):
+class UserConfirm(Resource):
+
+    def get(self, confirmation_id: str):
 
         confirmation = UserConfirmationModel.find_by_id(confirmation_id)
 
@@ -257,8 +260,8 @@ class UserConfirm(Resource):     # User_confirmation_token resource
             return{'message': EXPIRED_TOKEN}, 404
 
         if confirmation.confirmed:
-            return{'message': TOKEN_ALREADY_CONFIRMED},404
-        
+            return{'message': TOKEN_ALREADY_CONFIRMED}, 404
+
         confirmation.confirmed = True
         confirmation.save_to_db()
         headers = {"Content-Type": "text/html"}
@@ -266,7 +269,7 @@ class UserConfirm(Resource):     # User_confirmation_token resource
             render_template("confirmation_page.html", email=confirmation.user.email), 200, headers
         )
 
-              
+
 class TestConfirmation(Resource):    # Test Class
     @classmethod
     def get(cls, user_id):
@@ -285,28 +288,28 @@ class TestConfirmation(Resource):    # Test Class
             },
             200,
         )
-                 
+
     @classmethod
-    def post(cls, user_id):     # Resend_confirmation_token resource 
+    def post(cls, user_id):     # Resend_confirmation_token resource
         user = UserModel.find_user_by_id(user_id)
 
         if not user:
             return {'message': USER_NOT_FOUND}, 404
-        
+
         try:
             confirmation = user.recent_confirmation
             if confirmation:
                 if confirmation.confirmed:
                     return {"message": TOKEN_ALREADY_CONFIRMED}, 404
                 confirmation.force_expire()
-            
+
             new_confirmation = UserConfirmationModel(user_id)
             new_confirmation.save_to_db()
             user.send_email()
             return {"message": RESEND_SUCCESSFULL}, 200
-        
+
         except MailgunException as e:
             return {"message": str(e)}, 500
-        except:
+        except EnvironmentError:
             traceback.print_exc()
-            return{"message": RESEND_FAILED},500
+            return{"message": RESEND_FAILED}, 500

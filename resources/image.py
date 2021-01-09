@@ -1,6 +1,6 @@
 from flask_restful import Resource, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from utils import image
+from libs import image
 from flask_uploads import UploadNotAllowed
 
 from schemas.image import ImageSchema
@@ -21,5 +21,6 @@ class ImageUpload(Resource):
             return {"message": f"Image {basename} uploaded!"}, 201
         except UploadNotAllowed:
             wrong_image_path = image.get_basename(data['image'])
-            return {"message": f"Error! {wrong_image_path} is not an Image"}, 400
-
+            return {
+                    "message": f"Error! {wrong_image_path} is not an Image"
+                }, 400

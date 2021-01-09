@@ -1,6 +1,5 @@
-from marshmallow import validate, ValidationError, Schema, fields, validates
+from marshmallow import validate, Schema, fields
 
-from password import psw
 
 class UserSchema(Schema):
     id = fields.Integer()
@@ -8,7 +7,7 @@ class UserSchema(Schema):
     password = fields.String(required=True, validate=validate.Length(min=8, max=16))
     email = fields.Email(required=True)
     country = fields.String(required=True)
-    phone_number =  fields.String(required=True)
+    phone_number = fields.String(required=True)
     state = fields.String(required=True)
     city = fields.String(required=True)
 
@@ -32,6 +31,6 @@ class PasswordSchema(Schema):
 
 class LocationSchema(Schema):
     country = fields.String(required=True)
-    phone_number =  fields.String(required=True)
+    phone_number = fields.String(required=True)
     state = fields.String(required=True)
     city = fields.String(required=True)
