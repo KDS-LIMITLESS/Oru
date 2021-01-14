@@ -17,6 +17,11 @@ marshmallow-sqlalchemy = "*"
 flask-uploads = "*"
 flask-sqlalchemy = "*"
 psycopg2-binary = "*"
+quart = "*"
+quart-openapi = "*"
+quart-jwt-extended = "*"
+quart-schema = "*"
+flask-bcrypt = "*"
 
 [dev-packages]
 

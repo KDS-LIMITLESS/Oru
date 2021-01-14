@@ -3,8 +3,6 @@ from db import db
 
 import time
 
-
-
 EXPIRATION_TIME = 1200
 
 

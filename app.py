@@ -5,6 +5,7 @@ from flask_restful import Api
 from flask_uploads import configure_uploads, patch_request_class
 
 
+from password import psw
 from db import db
 from models.user import TokenBlacklist
 from resources.user import (
@@ -61,4 +62,5 @@ api.add_resource(ImageUpload, "/upload/image")
 
 if __name__ == "__main__":
     db.init_app(app)
+    psw.init_app(app)
     app.run(port=5000)

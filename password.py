@@ -1,5 +1,3 @@
-# from flask_bcrypt import Bcrypt
-import bcrypt
+from flask_bcrypt import Bcrypt
 
-bcrypt = bcrypt
-# psw = Bcrypt()
+psw = Bcrypt()

@@ -4,7 +4,7 @@ from db import db
 from models.user_confirm import UserConfirmationModel
 from libs.mailgun import Mailgun
 from phone import Country
-import bcrypt
+from password import psw
 
 
 class UserModel(db.Model):
@@ -26,7 +26,7 @@ class UserModel(db.Model):
 
     def __init__(self, username, password, email, country: str, phone_number, state, city, *args):
         self.username = username
-        self.password = bcrypt.hashpw(password=password.encode('utf8'), salt=bcrypt.gensalt()).decode('utf8')
+        self.password = psw.generate_password_hash(password).decode('utf8')
         self.email = email
         self.country = Country.get_country_name(Country, country)
         self.region = Country.get_country_region(Country)

@@ -1,7 +1,7 @@
 import traceback
 import time
 
-import bcrypt
+from password import psw
 from flask import make_response, render_template
 from flask_jwt_extended import (
                                 create_access_token, create_refresh_token,
@@ -10,7 +10,6 @@ from flask_jwt_extended import (
                             )
 from flask_restful import Resource, request
 from marshmallow import ValidationError
-from werkzeug.security import safe_str_cmp
 
 from db import db
 from libs.mailgun import MailgunException
@@ -42,7 +41,7 @@ EMAIL_UPDATED = "Click on the link sent to the email address provided to update 
 ACCOUNT_UPDATED = "Your account has been successfully updated"
 
 user_schema = UserSchema(load_only=('password', 'id',))
-login_schema = UserLoginSchema(load_only=('password'))
+login_schema = UserLoginSchema()
 
 
 class User(Resource):
@@ -210,7 +209,7 @@ class UserLogin(Resource):
 
         get_user_from_db = UserModel.find_user_by_email(get_user_details['email'])
 
-        if get_user_from_db and bcrypt.checkpw(user['password'], get_user_from_db.password):
+        if get_user_from_db and psw.check_password_hash(get_user_from_db.password, user['password']):
             confirmation = get_user_from_db.recent_confirmation
             if confirmation and confirmation.confirmed:
                 access_token = create_access_token(identity=get_user_from_db.email,fresh=True)
