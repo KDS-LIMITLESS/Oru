@@ -22,6 +22,12 @@ quart-openapi = "*"
 quart-jwt-extended = "*"
 quart-schema = "*"
 flask-bcrypt = "*"
+databases = "*"
+psycopg2 = "*"
+asyncpg = "*"
+aiohttp = "*"
+aiohttp-requests = "*"
+requests-async = "*"
 
 [dev-packages]
 

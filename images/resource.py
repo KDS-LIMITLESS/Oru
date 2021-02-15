@@ -1,14 +1,16 @@
-from flask_restful import Resource, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from quart import request
+from quart_openapi import Resource
+from quart_jwt_extended import jwt_required, get_jwt_identity
 from libs import image
 from flask_uploads import UploadNotAllowed
 
-from schemas.image import ImageSchema
+from .schema import ImageSchema
+from . import images
 
 
 image_schema = ImageSchema()
 
-
+@images.route('/images/upload')
 class ImageUpload(Resource):
     @jwt_required
     def post(self):

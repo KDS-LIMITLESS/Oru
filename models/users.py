@@ -1,10 +1,10 @@
-from flask import request, url_for
+from quart import request, url_for
 
-from db import db
-from models.user_confirm import UserConfirmationModel
+from libs.db import db
+from models.user_confirmation import UserConfirmationModel
 from libs.mailgun import Mailgun
-from phone import Country
-from password import psw
+from libs.phone import Country
+from libs.password import psw
 
 
 class UserModel(db.Model):
@@ -12,7 +12,7 @@ class UserModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(10), nullable=False)
-    password = db.Column(db.String(80), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(256), nullable=False, unique=True)
 
     country = db.Column(db.String(50), nullable=False)
@@ -54,24 +54,24 @@ class UserModel(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def send_email(self):
+    async def send_email(self):
         subject = "Registration Confirmation"
-        link = request.url_root[:-1] + url_for("userconfirm") + "/" + str(self.recent_confirmation.confirmation_id)
+        link = request.url_root[:-1] + url_for("user_confirm.user_confirm") + "/" + str(self.recent_confirmation.confirmation_id)
         text = f"Please click the link to confirm your registration:{link}"
         html = f"<html>Click the link to confirm your registration:<a href={link}>Confirmation Token</a></html>"
-        return Mailgun.send_email([self.email], subject, text, html)
+        return await Mailgun.send_email([self.email], subject, text, html), "Done Here"
 
     def delete_from_db(self):
         db.session.delete(self)
         db.session.commit()
 
     def __repr__(self):
-       return f"{self.id, self.username, self.email, self.password}"
+        return f"{self.id, self.username, self.email, self.password}"
 
 
 class TokenBlacklist(db.Model):
     __tablename__ = 'blacklist'
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(120))
 
     def add(self):
@@ -81,4 +81,4 @@ class TokenBlacklist(db.Model):
     @classmethod
     def is_jti_blacklisted(cls, jti):
         query = cls.query.filter_by(jti=jti).first()
-        return bool(query) 
+        return bool(query)

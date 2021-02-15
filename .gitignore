@@ -1,8 +1,9 @@
-*ma.py
+ma.py
 *site
 *.vscode
 *__pycache__
 .env
-*.pipfile.lock
-*.pipfile
+pipfile.lock
+pipfile
 .__pycache__
+gitigore

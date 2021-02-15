@@ -1,5 +1,5 @@
 from uuid import uuid4
-from db import db
+from libs.db import db
 
 import time
 

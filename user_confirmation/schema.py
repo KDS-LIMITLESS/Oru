@@ -1,5 +1,5 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from models.user_confirm import UserConfirmationModel
+from models.user_confirmation import UserConfirmationModel
 
 
 class UserConfirmationSchema(SQLAlchemyAutoSchema):

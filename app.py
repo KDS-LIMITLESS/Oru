@@ -1,38 +1,40 @@
+import asyncio
+
+import quart.flask_patch
 from dotenv import load_dotenv
-from flask import Flask
-from flask_jwt_extended import JWTManager
-from flask_restful import Api
 from flask_uploads import configure_uploads, patch_request_class
+from quart_jwt_extended import JWTManager
+from quart_openapi import Pint
 
-
-from password import psw
-from db import db
-from models.user import TokenBlacklist
-from resources.user import (
-                            TokenRefresh, User, UserConfirm, UserLogin,
-                            DeleteUser, UpdateUserUsername, UpdateUserEmail,
-                            UserLogout, UserRegister, TestConfirmation,
-                            UpdateUserPassword, UpdateUserLocation,
-                        )
-from resources.image import ImageUpload
+from images import images
+from libs.db import db
 from libs.image import IMAGE_SET
+from libs.password import psw
+from models.users import TokenBlacklist
+from user_confirmation.resources import user_confirm
+from users.resources import user
+
+app = Pint(__name__)
+
+# Register Blueprints
+app.register_blueprint(user)
+app.register_blueprint(user_confirm)
+app.register_blueprint(images)
 
 
-app = Flask(__name__)
+@app.before_first_request
+async def create_tables():
+    async with app.app_context():
+        db.create_all()
+
+
 load_dotenv('.env', verbose=True)
 app.config.from_object('default_config')
 app.config.from_envvar('APPLICATION_SETTINGS')
 jwt = JWTManager(app)
 
-api = Api(app)
-
 patch_request_class(app, 10 * 1024 * 1024)
 configure_uploads(app, IMAGE_SET)
-
-
-@app.before_first_request
-def create_tables():
-    db.create_all()
 
 
 @jwt.token_in_blacklist_loader
@@ -41,26 +43,7 @@ def check_if_token_in_blacklist(decrypted_token):
     return TokenBlacklist.is_jti_blacklisted(jti)
 
 
-api.add_resource(User, "/users/<string:name>")
-api.add_resource(UpdateUserUsername, "/username")
-api.add_resource(UpdateUserPassword, "/password")
-api.add_resource(UpdateUserLocation, "/location")
-api.add_resource(UpdateUserEmail, "/email")
-api.add_resource(DeleteUser, "/delete")
-api.add_resource(UserRegister, "/register")
-api.add_resource(UserLogin, "/login")
-api.add_resource(UserLogout, "/logout/access")
-api.add_resource(TokenRefresh, "/refresh/access")
-api.add_resource(
-                    UserConfirm,
-                    "/userconfirm",
-                    "/userconfirm/<string:confirmation_id>"
-                )
-api.add_resource(TestConfirmation, "/resendconfirmationtoken/<int:user_id>")
-api.add_resource(ImageUpload, "/upload/image")
-
-
 if __name__ == "__main__":
-    db.init_app(app)
     psw.init_app(app)
-    app.run(port=5000)
+    db.init_app(app)
+    asyncio.create_task(app.run())

@@ -3,8 +3,6 @@ from werkzeug.datastructures import FileStorage
 
 
 class FileStorageField(fields.Field):
-
-
     def _deserialize(self, value, attr, data, **kwargs) -> FileStorage:
         if value is None:
             return None
@@ -12,7 +10,7 @@ class FileStorageField(fields.Field):
             self.fail("invalid")
 
         return value
-        
+
 
 class ImageSchema(Schema):
     image = FileStorageField(required=True, error_messages={"invalid": "Not a valid Image"})
