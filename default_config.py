@@ -3,7 +3,7 @@ from datetime import timedelta
 
 DEBUG = True
 
-SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']#'sqlite:///site'
+SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 UPLOADED_IMAGES_DEST = os.path.join("static", "images")
 JWT_SECRET_KEY = os.environ["JWT_SECRET_KEY"]

@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 flask-restful = "*"
 bcrypt = "*"
-flask-jwt-extended = "*"
 iso3166 = "*"
 python-dotenv = "*"
 flake8 = "*"
@@ -28,6 +27,7 @@ asyncpg = "*"
 aiohttp = "*"
 aiohttp-requests = "*"
 requests-async = "*"
+asyncinit = "*"
 
 [dev-packages]
 

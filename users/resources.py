@@ -31,7 +31,7 @@ class User(Resource):
     @classmethod
     @jwt_refresh_token_required
     async def get(cls, name):
-        get_user = UserModel.find_user_by_name(name)
+        get_user = await UserModel.find_user_by_name(name)
         if not get_user:
             return {'message': USER_NOT_FOUND}, 404
         return user_schema.dump(get_user), 200
@@ -148,8 +148,8 @@ class UpdateUserLocation(Resource):
             current_user.country = Country.get_country_name(Country, get_user['country'])
             _ = Country.get_country_region(Country)
             current_user.phone_number = Country.get_user_phonenumber(Country, get_user["phone_number"])
-            current_user.state = Country.get_states(Country, get_user['state'])
-            current_user.city = Country.get_city(Country, get_user['city'])
+            current_user.state = await Country.get_states(Country, get_user['state'])
+            current_user.city = await Country.get_city(Country, get_user['city'])
 
             db.session.commit()
 
@@ -168,12 +168,13 @@ class UserRegister(Resource):
         except ValidationError as err:
             return err.messages, 404
 
-        if UserModel.find_user_by_email(user['email']):
+        if await UserModel.find_user_by_email(user['email']):
             return {"message": EMAIL_TAKEN.format(user['email'])}, 404
 
         try:
-            c_user = UserModel(**user)
-            c_user.save_to_db()
+            c_user = UserModel()
+            await c_user.init(**user)
+            await c_user.save_to_db()
             confirmation = UserConfirmationModel(c_user.id)
             confirmation.save_to_db()
             await c_user.send_email()
@@ -183,7 +184,7 @@ class UserRegister(Resource):
                 MailgunException, UnboundLocalError,
                 TypeError, ConnectionError
                 ) as e:
-            c_user.delete_from_db()
+            await c_user.delete_from_db()
             return {"message": str(e)}, 500
 
 
@@ -197,7 +198,7 @@ class UserLogin(Resource):
         except ValidationError as err:
             return err.messages, 404
 
-        get_user_from_db = UserModel.find_user_by_email(get_user_details['email'])
+        get_user_from_db = await UserModel.find_user_by_email(get_user_details['email'])
 
         if get_user_from_db and psw.check_password_hash(get_user_from_db.password, user['password']):
             confirmation = get_user_from_db.recent_confirmation

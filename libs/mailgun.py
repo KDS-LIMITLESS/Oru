@@ -38,7 +38,6 @@ class Mailgun:
                 "html": html,
             },
         )
-        print("Done in mailgun")
 
         if response.status_code != 200:
             raise MailgunException(ERROR_SENDING_EMAIL)
