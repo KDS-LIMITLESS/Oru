@@ -1,4 +1,6 @@
 from quart import request, url_for
+from asyncinit import asyncinit
+
 from libs.db import db
 from models.user_confirmation import UserConfirmationModel
 from libs.mailgun import Mailgun
