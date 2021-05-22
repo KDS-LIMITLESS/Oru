@@ -11,8 +11,8 @@ from libs.db import db
 from libs.image import IMAGE_SET
 from libs.password import psw
 from models.users import TokenBlacklist
-from user_confirmation.resources import user_confirm
-from users.resources import user
+from resources.user_confirmation import user_confirm
+from resources.users import user
 
 app = Pint(__name__)
 

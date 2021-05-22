@@ -2,7 +2,6 @@ import iso3166
 import phonenumbers
 from phonenumbers import is_valid_number_for_region
 import aiohttp
-import asyncio
 
 
 class Country:
