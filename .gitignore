@@ -1,9 +1,0 @@
-ma.py
-*site
-*.vscode
-*__pycache__
-.env
-pipfile.lock
-pipfile
-.__pycache__
-gitigore
