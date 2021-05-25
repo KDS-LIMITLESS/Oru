@@ -44,7 +44,7 @@ class DeleteUser(Resource):
         user_identity = get_jwt_identity()
         user = UserModel.find_user_by_email(user_identity)
         if not user:
-            return {"Message": USER_NOT_FOUND}, 400
+            return {"Message": USER_NOT_FOUND}, 404
         user.delete_from_db()
         return {"message": USER_DELETED.format(user.username)}, 200
 
@@ -62,7 +62,7 @@ class UpdateUserUsername(Resource):
             try:
                 get_user = username_schema.load(newUsername)
             except ValidationError as err:
-                return err.messages, 404
+                return err.messages, 400
 
             current_user.username = get_user["username"]
 
@@ -85,7 +85,7 @@ class UpdateUserEmail(Resource):
             try:
                 get_user = email_schema.load(newEmail)
             except ValidationError as err:
-                return err.messages, 404
+                return err.messages, 400
 
             try:
                 current_user.email = get_user["email"]
@@ -119,7 +119,7 @@ class UpdateUserPassword(Resource):
             try:
                 get_user = password_schema.load(user)
             except ValidationError as err:
-                return err.messages, 404
+                return err.messages, 400
 
             current_user.password = psw.generate_password_hash(get_user["password"])
 
@@ -142,7 +142,7 @@ class UpdateUserLocation(Resource):
             try:
                 get_user = location_schema.load(currentLocation)
             except ValidationError as err:
-                return err.messages, 404
+                return err.messages, 400
 
             current_user.country = await Country.get_country_name(Country, get_user['country'])
             _ = await Country.get_country_region(Country)
@@ -165,7 +165,7 @@ class UserRegister(Resource):
         try:
             user = user_schema.load(user_details)
         except ValidationError as err:
-            return err.messages, 404
+            return err.messages, 400
 
         if await UserModel.find_user_by_email(user['email']):
             return {"message": EMAIL_TAKEN.format(user['email'])}, 404
@@ -195,7 +195,7 @@ class UserLogin(Resource):
         try:
             user = login_schema.load(get_user_details)
         except ValidationError as err:
-            return err.messages, 404
+            return err.messages, 400
 
         get_user_from_db = await UserModel.find_user_by_email(get_user_details['email'])
 
@@ -210,7 +210,7 @@ class UserLogin(Resource):
                     "Refresh_Token": refresh_token
                 }, 200
 
-            return {"message": NOT_ACTIVATED.format(get_user_from_db.email)}, 404
+            return {"message": NOT_ACTIVATED.format(get_user_from_db.email)}, 400
         return {"message": INCORRECT_EMAIL_OR_PASSWORD}, 400
 
 

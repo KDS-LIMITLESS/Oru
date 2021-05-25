@@ -25,10 +25,10 @@ class UserConfirm(Resource):
             return{'message': CONFIRMATION_TOKEN_NOT_FOUND}, 404
 
         if confirmation.token_expires_at < int(time.time()):
-            return{'message': EXPIRED_TOKEN}, 404
+            return{'message': EXPIRED_TOKEN}, 400
 
         if confirmation.confirmed:
-            return{'message': TOKEN_ALREADY_CONFIRMED}, 404
+            return{'message': TOKEN_ALREADY_CONFIRMED}, 400
 
         confirmation.confirmed = True
         confirmation.save_to_db()
